@@ -2,8 +2,39 @@ body {
     background-color: rgba(0, 0, 0, 0.95);
     font-family:"Meiryo";
     color: #fff;
-    overflow: hidden;
+    overflow: visible;
 }
+
+div#setting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    padding: 100px 50px;
+}
+
+div#setting #box {
+    height: 10px;
+}
+
+div#setting span {
+}
+
+div#setting span#url {
+    width: 300px;
+    color: black;
+    background-color: white;
+    padding: 2px 5px;
+    border-style: solid;
+    border-width: 1px;
+    font-size: large;
+}
+
+
+#content{
+    display: none;
+}
+
 #title {
     color: #aaddff;
     background-color: rgba(0, 0, 0, 1);
@@ -17,7 +48,7 @@ body {
 #result {
     clear: right;
     display: grid;
-    grid-template-columns: auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
+    grid-template-columns: minmax(1px, max-content) auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
 }
 #result > div {
     border-bottom: 1px solid #888888;

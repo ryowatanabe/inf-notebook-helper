@@ -1,11 +1,53 @@
 // 「最近」として表示する履歴の範囲 (単位:時間)
-const timeWindow = 12;
+const timeWindow = 168;
 
 // 更新のあるリザルトのみに表示を絞るか
-const showUpdatedOnly = true;
+const showUpdatedOnly = false;
+
+let url = null;
+let socket = null;
+let musictable = null;
+let looprequest = null;
+
+async function connect() {
+    console.log("connecting...");
+    if(socket != null) return;
+
+    socket = new WebSocket(url);
+
+    socket.addEventListener('open', (event) => {
+        console.log("websocket opened.");
+        //$('div#setting').css('display', 'none');
+        socket.send('get_musictable');
+    });
+
+    socket.addEventListener('message', (event) => {
+        console.log("message received.");
+        if(typeof event.data === 'string') {
+            musictable = JSON.parse(event.data);
+            console.log(musictable);
+            // 楽曲リストをロードできたら、履歴表示を開始
+            clearInterval(looprequest);
+            document.getElementById("setting").style.display = "none";
+            document.getElementById("content").style.display = "block";
+            looprequest = setInterval(loadJson, 1000);
+        }
+    });
+
+    socket.addEventListener('error', (event) => {
+        console.log("websocket error:");
+        console.log(event);
+        socket.close();
+    });
+
+    socket.addEventListener('close', (event) => {
+        console.log("websocket closed.");
+        socket = null;
+    });
+}
 
 function loadJson() {
-    var getjson = $.ajax({
+    let getjson = $.ajax({
         url: '../records/recent.json',
         type: 'GET',
         dataType: 'json',
@@ -13,38 +55,49 @@ function loadJson() {
     });
 
     getjson.done(function(json){
-        var out = "<div class='header'>Music</div><div class='header'>Lamp</div><div class='header'>Score</div><div class='header'>BP</div>";
-        var timestamps = json["timestamps"];
+        let out = "<div></div><div class='header'>Music</div><div class='header'>Lamp</div><div class='header'>Score</div><div class='header'>BP</div>";
+        let timestamps = json["timestamps"];
 
         // 履歴の足切り日時の文字列を yyyymmdd-hhmmss 形式で取得
-        var now = new Date();
-        var threshold = new Date(now.getTime() - timeWindow * 60 * 60 * 1000);
-        var yyyy = threshold.getFullYear().toString();
-        var mm = (threshold.getMonth() + 1).toString().padStart(2, '0');
-        var dd = threshold.getDate().toString().padStart(2, '0');
-        var hh = threshold.getHours().toString().padStart(2, '0');
-        var min = threshold.getMinutes().toString().padStart(2, '0');
-        var ss = threshold.getSeconds().toString().padStart(2, '0');
-        var timestamp_threshold = yyyy + mm + dd + '-' + hh + min + ss;
+        let now = new Date();
+        let threshold = new Date(now.getTime() - timeWindow * 60 * 60 * 1000);
+        let yyyy = threshold.getFullYear().toString();
+        let mm = (threshold.getMonth() + 1).toString().padStart(2, '0');
+        let dd = threshold.getDate().toString().padStart(2, '0');
+        let hh = threshold.getHours().toString().padStart(2, '0');
+        let min = threshold.getMinutes().toString().padStart(2, '0');
+        let ss = threshold.getSeconds().toString().padStart(2, '0');
+        let timestamp_threshold = yyyy + mm + dd + '-' + hh + min + ss;
 
         timestamps.filter(ts => ts > timestamp_threshold).sort((a, b) => b.localeCompare(a)).forEach(function(ts){
-            var entry = json["results"][ts];
+            let entry = json["results"][ts];
 
             if (showUpdatedOnly && !entry["update_clear_type"] && !entry["update_dj_level"] && !entry["update_score"] && !entry["update_miss_count"]) {
                 return;
             }
 
-            var difficulty = entry["difficulty"];
-            var playtype = entry["playtype"];
-            var title = entry["music"];
-            var playspeed = entry["playspeed"];
-            var lamp = entry["update_clear_type"];
-            var score = entry["update_score"];
-            var bp = entry["update_miss_count"];
-            var options = entry["option"];
+            let difficulty = entry["difficulty"];
+            let playtype = entry["playtype"];
+            let title = entry["music"];
+            let playspeed = entry["playspeed"];
+            let lamp = entry["update_clear_type"];
+            let score = entry["update_score"];
+            let bp = entry["update_miss_count"];
+            let options = entry["option"];
             
+            let level = null;
+            try {
+                if (playtype == "DP") {
+                    level = musictable["musics"][title]["DP"][difficulty];
+                } else {
+                    // DBの難易度はSP準拠
+                    level = musictable["musics"][title]["SP"][difficulty];
+                }
+            } catch(e) {
+            }
+
             // DB系のプレイオプションを反映
-            var db_options = "";
+            let db_options = "";
             if (playtype === "DP BATTLE") {
                 playtype = 'DP'
                 if (options.indexOf("A-SCR")<0){
@@ -76,7 +129,7 @@ function loadJson() {
             }
 
 
-            //out += '<div class="level"></div>'
+            out += `<div class="level">${level === null ? '' : '☆' + level}</div>`
             out += `<div class="title ${difficulty}">${title}</div>`
             out += `<div class="lamp ${lamp}">${lamp === null ? '' : lamp}</div>`
             out += `<div class="score">${score === null ? '' : "+" + score}</div>`;
@@ -91,5 +144,10 @@ function loadJson() {
 }
 
 window.addEventListener('DOMContentLoaded', function() {
-    var roopTimer = setInterval(loadJson, 1000);
+    const cssValue = getComputedStyle($(':root')[0]).getPropertyValue('--ws-url').trim();
+    if(cssValue.length)
+        url = cssValue.replace(/^["']|["']$/g, '');
+    $('span#url').text(url);
+
+    looprequest = setInterval(connect, 5000);
 });
