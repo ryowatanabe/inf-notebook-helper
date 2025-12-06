@@ -11,6 +11,9 @@ body {
     font-weight: bold;
     padding: 5px;
 }
+.plain {
+    color: #ffffff;
+}
 #result {
     clear: right;
     display: grid;

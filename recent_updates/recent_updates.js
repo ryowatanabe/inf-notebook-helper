@@ -1,5 +1,5 @@
 // 「最近」として表示する履歴の範囲 (単位:時間)
-const timeWindow = 24;
+const timeWindow = 12;
 
 // 更新のあるリザルトのみに表示を絞るか
 const showUpdatedOnly = true;
@@ -37,46 +37,50 @@ function loadJson() {
             var difficulty = entry["difficulty"];
             var playtype = entry["playtype"];
             var title = entry["music"];
+            var playspeed = entry["playspeed"];
             var lamp = entry["update_clear_type"];
             var score = entry["update_score"];
             var bp = entry["update_miss_count"];
-            var opt = entry["option"];
+            var options = entry["option"];
+
+            // DB系のプレイオプションを反映
+            if (playtype === "DP BATTLE") {
+                playtype = 'DP'
+                var db_options = "";
+                if (options.indexOf("A-SCR")<0){
+                    db_options = "皿あり";
+                }
+                if ((options.indexOf("MIR/OFF")>=0) || (options.indexOf("OFF/MIR")>=0)){
+                    db_options += 'DBM'
+                }
+                else if (options.indexOf("OFF/OFF")>=0){
+                    db_options += 'DB'
+                }
+                else if (options.indexOf("RAN/RAN")>=0){
+                    db_options += 'DBR'
+                }
+                else if (options.indexOf("S-RAN/S-RAN")>=0){
+                    db_options += 'DBSR'
+                }
+                else if (options.indexOf("H-RAN/H-RAN")>=0){
+                    db_options += 'DBHR'
+                }
+                if (db_options != ""){
+                    title = `${title} <span class="plain">(${db_options})</span>`;
+                }
+            }
+
+            // プレイスピード変更を反映
+            if (playspeed !== null) {
+                title = `${title} <span class="plain">(x${playspeed})</span>` 
+            }
 
             //out += '<div class="level"></div>'
-            out += '<div class="title">'+title+'</div>'
-            out += '<div class="difficulty ' + difficulty + '">' + playtype + difficulty.slice(0,1) + '</div>';
-            out += '<div class="lamp ' + lamp + '">' + (lamp === null ? '' : lamp) + '</div>'
-            out += '<div class="score">'+ (score === null ? '' : "+" + score) + '</div>';
-            out += '<div class="miss_count">'+ (bp === null ? '' : bp) + '</div>';
-
-            // テーブルに追加
-            /*
-            if (opt.indexOf("BATTLE") >= 0){ // DBx系オプションの場合、スコアの所にbp250のようにミスカンを入れておく
-                var with_scratch = "";
-                if (opt.indexOf("A-SCR")<0){
-                    with_scratch = "皿あり"; // 皿あり表記を無効にする場合はこの行を消せばOK
-                }
-                if ((opt.indexOf("MIR / OFF")>=0) || (opt.indexOf("OFF / MIR")>=0)){
-                    title = '('+with_scratch+'DBM) ' + title
-                }
-                else if (opt.indexOf("OFF / OFF")>=0){
-                    title = '('+with_scratch+'DB) ' + title
-                }
-                else if (opt.indexOf("RAN / RAN")>=0){
-                    title = '('+with_scratch+'DBR) ' + title
-                }
-                else if (opt.indexOf("S-RAN / S-RAN")>=0){
-                    title = '('+with_scratch+'DBSR) ' + title
-                }
-                else if (opt.indexOf("H-RAN / H-RAN")>=0){
-                    title = '('+with_scratch+'DBHR) ' + title
-                }
-                out +='<div class="level">☆'+lv+'</div><div class="title">'+title+'</div><div>'+difficulty+'</div><div>'+lamp+'</div><div>bp'+bp+'</div>';
-            } else{
-            */
-            //if (index == 39){ // 直近の30曲だけ表示としている。曲数はここから変更可能。
-            //    return false;
-            //}
+            out += `<div class="title">${title}</div>`
+            out += `<div class="difficulty ${difficulty}">${playtype + difficulty.slice(0,1)}</div>`;
+            out += `<div class="lamp ${lamp}">${lamp === null ? '' : lamp}</div>`
+            out += `<div class="score">${score === null ? '' : "+" + score}</div>`;
+            out += `<div class="miss_count">${bp === null ? '' : bp}</div>`;
         });
         $('#result').html(out);
     });
