@@ -13,7 +13,7 @@ function loadJson() {
     });
 
     getjson.done(function(json){
-        var out = "<div class='header'>Music</div><div class='header'></div><div class='header'>Lamp</div><div class='header'>Score</div><div class='header'>BP</div>";
+        var out = "<div class='header'>Music</div><div class='header'>Lamp</div><div class='header'>Score</div><div class='header'>BP</div>";
         var timestamps = json["timestamps"];
 
         // 履歴の足切り日時の文字列を yyyymmdd-hhmmss 形式で取得
@@ -42,11 +42,11 @@ function loadJson() {
             var score = entry["update_score"];
             var bp = entry["update_miss_count"];
             var options = entry["option"];
-
+            
             // DB系のプレイオプションを反映
+            var db_options = "";
             if (playtype === "DP BATTLE") {
                 playtype = 'DP'
-                var db_options = "";
                 if (options.indexOf("A-SCR")<0){
                     db_options = "皿あり";
                 }
@@ -65,19 +65,19 @@ function loadJson() {
                 else if (options.indexOf("H-RAN/H-RAN")>=0){
                     db_options += 'DBHR'
                 }
-                if (db_options != ""){
-                    title = `${title} <span class="plain">(${db_options})</span>`;
-                }
             }
 
-            // プレイスピード変更を反映
+            title = `${title} (${playtype + difficulty.slice(0,1)})`
             if (playspeed !== null) {
-                title = `${title} <span class="plain">(x${playspeed})</span>` 
+                title = `<span class="plain">(x${playspeed})</span> ${title}` 
             }
+            if (db_options != ""){
+                title = `<span class="plain">(${db_options})</span> ${title}`;
+            }
+
 
             //out += '<div class="level"></div>'
-            out += `<div class="title">${title}</div>`
-            out += `<div class="difficulty ${difficulty}">${playtype + difficulty.slice(0,1)}</div>`;
+            out += `<div class="title ${difficulty}">${title}</div>`
             out += `<div class="lamp ${lamp}">${lamp === null ? '' : lamp}</div>`
             out += `<div class="score">${score === null ? '' : "+" + score}</div>`;
             out += `<div class="miss_count">${bp === null ? '' : bp}</div>`;

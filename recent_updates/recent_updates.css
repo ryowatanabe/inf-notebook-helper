@@ -17,7 +17,7 @@ body {
 #result {
     clear: right;
     display: grid;
-    grid-template-columns: auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
+    grid-template-columns: auto minmax(1px, max-content) minmax(1px, max-content) minmax(1px, max-content)
 }
 #result > div {
     border-bottom: 1px solid #888888;
@@ -31,7 +31,6 @@ body {
 #result > .title {
     overflow-x: hidden;
     text-overflow: ellipsis;
-    color: #bbffee;
 }
 #result > .score {
     text-align: right;
@@ -41,16 +40,16 @@ body {
     color:#aaaaff;
 }
 
-.difficulty.NORMAL {
+.NORMAL {
     color: #8888ff;
 }
-.difficulty.HYPER {
+.HYPER {
     color: #ffff88;
 }
-.difficulty.ANOTHER {
+.ANOTHER {
     color: #ff8888;
 }
-.difficulty.LEGGENDARIA {
+.LEGGENDARIA {
     color: #ff88ff;
 }
 
