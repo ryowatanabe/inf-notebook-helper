@@ -76,6 +76,9 @@ function optionToString(options){
 }
 
 function applyData(data) {
+    if (!data["result"]) {
+        return;
+    }
     let timestamps = data["result"]["timestamps"];
     let title = data["music"]["musicname"];
     let difficulty = data["music"]["difficulty"];
