@@ -1,8 +1,8 @@
 // 「最近」として表示する履歴の範囲 (単位:時間)
-const timeWindow = 168;
+const timeWindow = 12;
 
 // 更新のあるリザルトのみに表示を絞るか
-const showUpdatedOnly = false;
+const showUpdatedOnly = true;
 
 let url = null;
 let socket = null;
@@ -17,20 +17,25 @@ async function connect() {
 
     socket.addEventListener('open', (event) => {
         console.log("websocket opened.");
-        //$('div#setting').css('display', 'none');
         socket.send('get_musictable');
     });
 
     socket.addEventListener('message', (event) => {
         console.log("message received.");
         if(typeof event.data === 'string') {
-            musictable = JSON.parse(event.data);
-            console.log(musictable);
-            // 楽曲リストをロードできたら、履歴表示を開始
-            clearInterval(looprequest);
-            document.getElementById("setting").style.display = "none";
-            document.getElementById("content").style.display = "block";
-            looprequest = setInterval(loadJson, 1000);
+            try {
+                let data = JSON.parse(event.data);
+                if (data.method == 'get_musictable') {
+                    musictable = data.result;
+                    // 楽曲リストをロードできたら、履歴表示を開始
+                    clearInterval(looprequest);
+                    $("#setting").css("display", "none");
+                    $("#content").css("display", "block");
+                    looprequest = setInterval(loadJson, 1000);
+                }
+            } catch(e) {
+                console.log(e);
+            }
         }
     });
 
